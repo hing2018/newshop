@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新店開幕排程 2026.09–11</title>
+<style>
+  :root{
+    --green-dark:#14532d;
+    --green:#1a7a4a;
+    --green-mid:#2e8b57;
+    --green-light:#4caf7d;
+    --green-bg:#eaf5ee;
+    --green-bg2:#d7ecdf;
+    --warn:#b45309;
+    --warn-bg:#fef3c7;
+    --buffer-bg:repeating-linear-gradient(45deg,#d7ecdf 0 6px,#eaf5ee 6px 12px);
+    --ink:#1f3d2e;
+    --muted:#5b7a6a;
+    --line:#cfe4d6;
+    --orange:#ea580c;
+    --orange-soft:#ffedd5;
+    --today:var(--orange);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:#ffffff;
+    color:var(--ink);
+    font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;
+    font-size:14px;
+    line-height:1.45;
+    padding:16px 20px 40px;
+  }
+  h1{ font-size:22px; color:var(--green-dark); margin:0 0 2px; }
+  .subtitle{ color:var(--muted); font-size:12px; margin-bottom:12px; }
+
+  /* 控制列 */
+  .toolbar{
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+    background:var(--green-bg); border:1px solid var(--line); border-radius:10px;
+    padding:10px 14px; margin-bottom:12px;
+  }
+  .toolbar label{ font-weight:600; color:var(--green-dark); }
+  .toolbar input[type=date]{
+    border:1px solid var(--green-mid); border-radius:6px; padding:4px 8px;
+    font-size:14px; color:var(--green-dark); background:#fff;
+  }
+  .toolbar button{
+    border:1px solid var(--green-dark); background:var(--green-dark); color:#fff;
+    border-radius:6px; padding:5px 14px; font-size:13px; cursor:pointer;
+  }
+  .toolbar button:hover{ background:var(--green-mid); }
+  .hint{ color:var(--muted); font-size:12px; }
+  .hint.two-games{ flex-basis:100%; padding-top:8px; margin-top:2px;
+                    border-top:1px dashed var(--line); line-height:1.6; }
+  .hint.two-games b{ color:var(--green-dark); }
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center;
+    font-size:12px; color:var(--muted);
+    margin-bottom:12px; padding:6px 2px;
+  }
+  .lg-item{ display:inline-flex; align-items:center; gap:5px; }
+  .sw{ width:14px; height:14px; display:inline-block; border-radius:3px; }
+  .sw.mile{ background:#fff; border:2px solid var(--green-dark); border-radius:50%; }
+  .sw.range{ background:var(--green); border-radius:3px; }
+  .sw.tent{ background:#fff; border:2px dashed var(--warn); border-radius:3px; }
+  .sw.buf{ background:var(--buffer-bg); border:1px solid var(--green-mid); border-radius:3px; }
+  .sw.today{ background:var(--today); border-radius:50%; }
+  .sw.monthline{ background:#fff; border-left:3px solid var(--orange); border-radius:0; }
+  .dot-today{ display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--today); }
+
+  /* 甘特 */
+  .section-title{ font-size:15px; font-weight:700; color:var(--green-dark); margin:16px 0 6px; }
+  #gantt{
+    overflow-x:auto; border:1px solid var(--line); border-radius:10px;
+    background:#fff; padding:0;
+  }
+  .gantt-table{ border-collapse:collapse; width:100%; table-layout:fixed; }
+  .gantt-table td{ padding:0; height:24px; border-left:1px solid #eef6f1; }
+  .gantt-table td.mon{ border-left:1px solid #cfe4d6; }
+  .gantt-table td.weekend{ background:#f7fbf8; }
+  .gantt-table th{
+    font-size:10px; color:var(--muted); font-weight:400; padding:0 0 2px;
+    border-left:1px solid #eef6f1;
+  }
+  .gantt-table th.mon{ color:var(--green-dark); border-left:1px solid #cfe4d6; }
+  .gantt-table th.month{
+    background:var(--green-bg); color:var(--green-dark);
+    font-weight:700; font-size:11px; padding:3px 0; text-align:left;
+    border-bottom:1px solid var(--line);
+  }
+  .gantt-table th.month.start{ border-left:3px solid var(--orange); }
+  .gantt-table td.month-start{ border-left:2px solid var(--orange); }
+  .gantt-table tbody tr:nth-child(even) td:not(.gantt-row-label){ background:#f8fcf9; }
+  .gantt-row-label{
+    position:sticky; left:0; background:var(--green-bg); z-index:2;
+    font-size:12.5px; color:var(--green-dark); font-weight:700;
+    border-right:1px solid var(--line);
+    padding:0 10px 0 8px; white-space:nowrap; min-width:150px;
+  }
+  .gantt-row-label .lbl{ max-width:182px; overflow:hidden; text-overflow:ellipsis; }
+  .gantt-row-label .off{ color:var(--orange); font-weight:600; font-size:11px; margin-left:2px; }
+  .gantt-row-label.tentative{ color:var(--warn); }
+  .gantt-cell{ position:relative; }
+  .g-bar{
+    position:absolute; top:3px; left:0; height:18px; border-radius:4px;
+    background:linear-gradient(180deg,var(--green-mid) 100%,var(--green-dark) 100%);
+    color:#fff; font-size:11px; line-height:18px; font-weight:600;
+    padding:0 8px; white-space:nowrap; overflow:hidden; cursor:default;
+    z-index:1; box-shadow:0 1px 2px rgba(20,83,45,0.25);
+  }
+  .g-bar:hover{ filter:brightness(1.1); }
+  .g-bar.tentative{ background:linear-gradient(180deg,#fef3c7 0%,#fde68a 100%); color:var(--warn); border:1px dashed var(--warn); }
+  .g-milestone{
+    position:absolute; top:5px; left:0; width:0; height:0; cursor:default; z-index:1;
+  }
+  .g-milestone::before{
+    content:""; position:absolute; left:-7px; top:-6px;
+    width:14px; height:14px; background:#fff;
+    border:2.5px solid var(--green-dark); border-radius:50%;
+    box-shadow:0 0 0 2px rgba(20,83,45,0.15);
+  }
+  .g-milestone.tentative::before{ border-color:var(--warn); border-style:dashed; }
+  .g-buffer{
+    position:absolute; top:3px; left:0; height:18px; border-radius:4px;
+    background:var(--buffer-bg); border:1px dashed var(--green-mid);
+  }
+  .g-name{ position:absolute; left:10px; top:0; font-size:11px; color:var(--green-dark); white-space:nowrap; z-index:2; font-weight:600; }
+  .g-today-line{ position:absolute; top:0; width:2px; height:24px; background:var(--orange); z-index:3; }
+  .g-today-line::after{ content:""; position:absolute; top:-4px; left:-3px; width:8px; height:8px; background:var(--orange); border-radius:50%; }
+
+  /* 月曆 */
+  #calendars{ display:flex; flex-wrap:wrap; gap:14px; }
+  .cal{
+    border:1px solid var(--line); border-radius:10px; background:#fff;
+    padding:10px 12px 12px; flex:1 1 300px; min-width:290px;
+  }
+  .cal h3{ margin:0 0 8px; font-size:15px; color:var(--green-dark); }
+  .cal table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+  .cal th{
+    font-size:11px; color:var(--muted); font-weight:400; padding:3px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .cal th.sun,.cal th.sat{ color:var(--green-mid); }
+  .cal td{
+    height:52px; vertical-align:top; border:1px solid #eef6f1;
+    padding:2px 3px; font-size:11px; color:var(--muted);
+  }
+  .cal td.out{ background:#fcfdfc; }
+  .cal td.weekend{ background:#f7fbf8; }
+  .cal td.today{ background:var(--orange-soft) !important; box-shadow:inset 0 0 0 2px var(--orange); }
+  .cal td.today span.daynum{ color:var(--orange); font-weight:800; }
+  .daynum{ font-weight:600; color:var(--ink); }
+  .ev{ border-radius:3px; padding:0 3px; margin-top:1px; font-size:10px; line-height:1.35; overflow:hidden; }
+  .ev-m{ background:var(--green-bg); color:var(--green-dark); border-left:3px solid var(--green-dark); }
+  .ev-m.tentative{ background:var(--warn-bg); color:var(--warn); border-left-color:var(--warn); }
+  .ev-range-in{
+    background:var(--green-bg);
+    border-top:1px dashed var(--green-mid);
+    border-bottom:1px dashed var(--green-mid);
+  }
+  .ev-range-start{ background:var(--green-dark); color:#fff; border-radius:3px 0 0 3px; font-weight:700; }
+  .ev-range-end{ background:var(--green-dark); color:#fff; border-radius:0 3px 3px 0; font-weight:700; }
+  .ev-buffer{ background:var(--buffer-bg); color:var(--green-dark); border:1px dashed var(--green-mid); }
+  .ev-todayflag{ border-left:2px solid var(--orange); }
+
+  /* 詳情表 */
+  #detailTable{ margin-top:10px; }
+  table.detail{
+    width:100%; border-collapse:collapse; background:#fff;
+    border:1px solid var(--line); border-radius:10px; overflow:hidden;
+    font-size:12.5px;
+  }
+  table.detail th{
+    background:var(--green-dark); color:#fff; text-align:left;
+    padding:6px 8px; font-size:12px;
+  }
+  table.detail td{ border-top:1px solid var(--line); padding:6px 8px; vertical-align:top; }
+  table.detail tr:nth-child(even){ background:#f8fcf9; }
+  .badge-conf{ background:var(--green-bg); color:var(--green-dark); border-radius:10px; padding:1px 8px; font-size:11px; }
+  .badge-tent{ background:var(--orange-soft); color:var(--orange); border:1px solid var(--orange); border-radius:10px; padding:1px 8px; font-size:11px; font-weight:600; }
+  .children{ margin:0; padding-left:16px; }
+  .children li{ margin:0; }
+
+  /* 詳細／簡潔切換 */
+  body.compact .only-detail{ display:none !important; }
+  body.compact .g-bar{ border-radius:2px; }
+  body.compact .g-bar .g-name{ display:none; }
+  body.compact .g-milestone .g-name{ display:none; }
+  body.compact .gantt-row-label .off{ display:none; }
+  body.compact .gantt-row-label{ min-width:14px; font-size:0; padding:0; border-right:none; }
+  body.compact .gantt-table th.month{ display:none; }
+  body.compact .gantt-table th{ font-size:0; padding:0; }
+  body.compact .g-today-line::after{ display:none; }
+  body.compact .ev{ font-size:0 !important; border-radius:2px; }
+  body.compact .ev-m{ font-size:0 !important; }
+  body.compact td{ height:18px; }
+
+  /* 層別群組列（沿用本檔綠系）*/
+  .g-row .g-label{ background:#e9edeb; font-weight:700; font-size:0.72rem;
+                    letter-spacing:0.14em; color:#1f3d2e; }
+  .g-row .g-span { background:#e9edeb; }
+  body.compact .g-row td{ height:18px; }
+  .g-row .g-label .off{ display:none; }
+  .d-group td{ background:#e9edeb; font-weight:700; font-size:0.72rem;
+               letter-spacing:0.14em; color:#1f3d2e; padding:6px 8px; }
+
+  /* 列印 */
+  @media print{
+    body{ padding:0; font-size:11px; }
+    .toolbar .controls, .toolbar .hint, .toolbar button{ display:none; }
+    .legend{ margin:0 0 8px; }
+    #detailTable{ display:none !important; }
+    #gantt{ overflow:visible; border:none; padding:0; }
+    .gantt-table th.month{ font-size:10px; }
+    .g-bar .g-name, .g-milestone .g-name{ display:block !important; font-size:8px; }
+    .g-today-line{ background:#000 !important; }
+    .g-row .g-label, .g-row .g-span, .d-group td{ background:#e4e8e6 !important; }
+    .g-today-line::after{ display:none; }
+    .ev{ font-size:9px !important; }
+  }
+</style>
+</head>
+<body class="detail">
+
+<header>
+  <h1>新店開幕・裝修搬遷排程</h1>
+  <div class="subtitle">密室逃脫店 ｜ 葵芳 → 新蒲崗 ｜ 2026.09 – 2026.12 ｜ 基準日＝簽約＋拎匙</div>
+</header>
+
+<div class="toolbar">
+  <div class="controls">
+    <label>📄 簽約＋拎匙（基準日）
+      <input type="date" id="baseDate" value="2026-09-29">
+    </label>
+    <button id="toggleView" type="button">切換：簡潔顯示</button>
+  </div>
+  <span class="hint">修改基準日 → 下游任務自動順延（IDEA post／搬店／五階段的限期為固定承諾日期，不受基準日影響）</span>
+  <span class="hint two-games">本檔含<b>兩款遊戲</b>：<b>階段層＝本作《逃出便利店》</b>（A–E 五階段，限期為承諾日期）｜<b>工種層＝《逃出IDEA》</b>（葵芳 → 新蒲崗搬遷）。兩者各自獨立排程，<b>時序互不約束</b>，勿互相推算。</span>
+</div>
+
+<div class="legend">
+  <span class="lg-item"><span class="sw range"></span>區間工作</span>
+  <span class="lg-item"><span class="sw mile"></span>里程碑（單日）</span>
+  <span class="lg-item"><span class="sw tent"></span>暫定（虛線）</span>
+  <span class="lg-item"><span class="sw buf"></span>緩衝日</span>
+  <span class="lg-item"><span class="sw today"></span>今日</span>
+  <span class="lg-item"><span class="sw monthline"></span>月份切換</span>
+</div>
+
+<div class="section-title">① 總覽時間軸（甘特）</div>
+<div id="gantt"></div>
+
+<div class="section-title only-detail">② 月曆視圖</div>
+<div id="calendars" class="only-detail"></div>
+
+<div class="section-title only-detail">③ 任務詳情</div>
+<section id="detailTable" class="only-detail"></section>
+
+<script>
+"use strict";
+
+/* ===== 日期工具 ===== */
+function toDate(s){ const p=s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); }
+function fmt(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function addDays(d,n){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()+n); return x; }
+function diffDays(a,b){ return Math.round((a.getTime()-b.getTime())/86400000); }
+const WEEK=['日','一','二','三','四','五','六'];
+function todayStr(){ const n=new Date(); return fmt(n); }
+
+/* ===== 任務定義 =====
+   mode : base（基準日，可編輯）｜ abs（絕對日期，不動）｜ rel（D0+偏移，自動順延）
+   status: confirmed 確定 / tentative 暫定
+   buffer : 區間結束後的緩衝日數 */
+const TASKS_RAW=[
+  { group:'工種層（逃出IDEA）', id:'sign',    name:'簽租約',                          type:'milestone', mode:'base', status:'tentative', loc:'逃出IDEA｜新蒲崗店',
+    note:'原定 14/9，已延期一次。全排程基準日：修改此日期，下游自動順延。' },
+  { group:'工種層（逃出IDEA）', id:'post',    name:'IDEA_post',              type:'milestone', mode:'abs',  date:'2026-09-15', status:'confirmed', loc:'逃出IDEA｜對外（宣傳）',
+    children:['舊作更換：IDEA 暫停運作','新作上線','續作預告'],
+    note:'對外公告：舊主題 IDEA 暫停運作、新作／續作同步上線。內容不寫死對外日期。' },
+  { group:'工種層（逃出IDEA）', id:'trapStart', name:'便利店・機關開始（設計／製作）', type:'range',     mode:'rel', off:0,  dur:19, status:'confirmed', loc:'逃出IDEA｜外部工場',
+    note:'機關設計／製作（外部工場），起始 = 簽約日，結束 = 機關入場前一天。', depend:'簽租約同日' },
+  { group:'工種層（逃出IDEA）', id:'ceil',    name:'裝修進場・天花工程',              type:'range',     mode:'rel', off:1,  dur:6, status:'confirmed', loc:'逃出IDEA｜新蒲崗店',
+    children:['氣喉','簾軌','網架','電路'], depend:'簽租約 +1 天' },
+  { group:'工種層（逃出IDEA）', id:'wall',    name:'牆工程・上布簾',                  type:'range',     mode:'rel', off:7,  dur:7, status:'confirmed', loc:'逃出IDEA｜新蒲崗店',
+    depend:'天花結束同日' },
+  { group:'工種層（逃出IDEA）', id:'floor',   name:'地工程・小修補＋光油',            type:'range',     mode:'rel', off:14, dur:4, status:'confirmed', loc:'逃出IDEA｜新蒲崗店',
+    depend:'牆結束同日' },
+  { group:'工種層（逃出IDEA）', id:'check',   name:'基礎裝修完成・檢查',              type:'milestone', mode:'rel', off:18, status:'confirmed', loc:'逃出IDEA｜新蒲崗店',
+    depend:'地工程完成' },
+  { group:'工種層（逃出IDEA）', id:'trap',    name:'便利店・機關入場',                type:'range',     mode:'rel', off:19, dur:23, buffer:1, status:'confirmed', loc:'逃出IDEA｜新蒲崗店',
+    note:'安裝目標 8/10–30/10；31/10 為自動緩衝日（隨延誤平移）。', depend:'基礎檢查完成' },
+  { group:'工種層（逃出IDEA）', id:'move',    name:'葵芳搬店至新蒲崗',                type:'milestone', mode:'abs',  date:'2026-10-15', status:'confirmed', loc:'逃出IDEA｜葵芳 → 新蒲崗',
+    note:'與機關入場期重疊，已確認錯開時段、互不影響。' },
+  { group:'工種層（逃出IDEA）', id:'tTest',   name:'內部測試',                        type:'milestone', mode:'rel', off:43, status:'confirmed', loc:'逃出IDEA｜新蒲崗店',
+    note:'排週日。', depend:'機關入場完成 +1' },
+  { group:'工種層（逃出IDEA）', id:'pTest',   name:'公開測試',                        type:'milestone', mode:'rel', off:49, status:'confirmed', loc:'逃出IDEA｜新蒲崗店',
+    note:'排週六。', depend:'內部測試 +6' },
+];
+
+/* ── 階段層 ──
+   來自五階段排程。mode:'abs' + date/date2：限期是對外承諾，不隨基準日順延。 */
+const PHASES=[
+  { group:'階段層（本作）', id:'pPrep', name:'準備期・場地規劃至取匙', type:'range', mode:'abs',
+    date:'2026-09-01', date2:'2026-09-29', status:'confirmed', loc:'新蒲崗店',
+    children:['場地基本規劃','整作完整工程流程時間表','買保險','簽約＋拎匙'],
+    note:'9/29 簽約＋拎匙，階段 A 與 B 同日開工。' },
+
+  { group:'階段層（本作）', id:'pA', due:true, name:'階段 A・基礎裝修', type:'range', mode:'abs',
+    date:'2026-09-29', date2:'2026-10-15', status:'confirmed', loc:'新蒲崗店',
+    children:['基礎功能規劃＋出圖（燈光/冷氣/電位/儲物/間牆）','場地風格設計（街頭風格）',
+              '天地牆做法（吊燈/窗簾/牆紙/地板）','準備材料・確定日期','開始裝修'],
+    depend:'取匙日 9/29', note:'限期 2026/10/15。前 3 項屬設計，實際施工時間短。' },
+
+  { group:'階段層（本作）', id:'pB', due:true, name:'階段 B・密室製作《逃出便利店》', type:'range', mode:'abs',
+    date:'2026-10-15', date2:'2026-11-15', status:'confirmed', loc:'新蒲崗店',
+    children:['故事＋主要流程文字定案（GameFlow）','空間設計 3D plan（預覽圖）',
+              '基本天地牆裝修（天花燈/儲物/通風/地板/牆紙/門）','遊戲謎題機關製作',
+              '謎題道具＋VO錄音＋音效','氣氛強化（裝飾道具/BGM/燈具）',
+              '測試固定流程＋後台操作（簡單版）','測試隨機流程＋後台操作（正式版）','強化遊戲體驗'],
+    depend:'與階段 A 同日開工（9/29）',
+    note:'限期 2026/11/15。步驟 7 同步啟動階段 C 與 D（11/10）。' },
+
+  { group:'階段層（本作）', id:'pC', due:true, name:'階段 C・員工區裝修', type:'range', mode:'abs',
+    date:'2026-11-10', date2:'2026-11-25', status:'confirmed', loc:'新蒲崗店',
+    children:['基礎規劃（後台操作區/燈/CCTV儲物格/公告板）','討論及預算','開始制作'],
+    depend:'階段 B 步驟 7 同步啟動（11/10）', note:'限期 2026/11/25。' },
+
+  { group:'階段層（本作）', id:'pD', due:true, name:'階段 D・開放式區域', type:'range', mode:'abs',
+    date:'2026-11-10', date2:'2026-11-30', status:'confirmed', loc:'新蒲崗店',
+    children:['場地主要風格（室內街道風）','落實出圖','天地牆裝飾＋大型裝置',
+              '預算及買料','製作','測試及調整'],
+    depend:'階段 B 步驟 7 同步啟動（11/10）',
+    note:'限期 2026/11/30 開放。步驟 4 同步啟動階段 E。' },
+
+  { group:'階段層（本作）', id:'pE', due:true, name:'階段 E・新綜藝團建遊戲', type:'range', mode:'abs',
+    date:'2026-11-22', date2:'2026-12-31', status:'tentative', loc:'新蒲崗店',
+    children:['安排《逃出洗衣店》日期','製定流程','測試「新綜藝團建遊戲」'],
+    depend:'階段 D 步驟 4（預算及買料）→ 推估 11/22',
+    note:'限期 2026/12/31。開始日為推估值——原文只訂了限期，觸發點是 D4。' },
+];
+
+/* 階段層在前（摘要），工種層在後（執行明細） */
+const TASKS = PHASES.concat(TASKS_RAW);
+
+/* ===== 計算 ===== */
+function compute(baseStr){
+  const base = toDate(baseStr);
+  return TASKS.map(t=>{
+    let start=null, end=null, buffer=null, abs=false, dateStr='';
+    if(t.mode==='base'){ start=base; end=base; }
+    else if(t.mode==='abs'){
+      start=toDate(t.date);
+      end = t.date2 ? toDate(t.date2) : start;   // date2 = 固定結束日（限期）
+      abs=true;
+    }
+    else{ // rel
+      start=addDays(base,t.off);
+      end=t.type==='range' ? addDays(start,t.dur-1) : start;
+      if(t.buffer) buffer=addDays(end,1);
+    }
+    dateStr = t.type==='range' ? fmt(start)+' ～ '+fmt(end) : fmt(start);
+    return { t, start, end, buffer, abs, dateStr };
+  });
+}
+
+/* ===== 甘特 ===== */
+function renderGantt(items){
+  const dates=items.map(i=>i.start).concat(items.map(i=>i.end)).concat(items.map(i=>i.buffer).filter(Boolean));
+  // 頭尾各留一天緩衝，但不得跨月（否則會多出幽靈月份欄）
+  const isMonthStart=d=>d.getDate()===1;
+  const isMonthEnd  =d=>d.getDate()===new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  let min=new Date(Math.min.apply(null,dates));
+  let max=new Date(Math.max.apply(null,dates));
+  if(!isMonthStart(min)) min=addDays(min,-1);
+  if(!isMonthEnd(max))  max=addDays(max,1);
+  const days=diffDays(max,min)+1;
+  const today=todayStr();
+
+  // 月份分隔：計算每個 i 是否是「當月第一天」
+  const monthSeg=[]; // [{startIdx,endIdx,label}]
+  let segStart=0, segMonth=-1;
+  for(let i=0;i<days;i++){
+    const d=addDays(min,i);
+    const m=d.getMonth();
+    if(m!==segMonth){
+      if(segMonth!==-1) monthSeg.push({startIdx:segStart,endIdx:i-1,label:(segMonth+1)+'月'});
+      segStart=i; segMonth=m;
+    }
+  }
+  monthSeg.push({startIdx:segStart,endIdx:days-1,label:(segMonth+1)+'月'});
+
+  // 表頭：第一行月份標籤（跨格），第二行每日標籤
+  let html='<table class="gantt-table"><colgroup><col style="width:200px"></colgroup><thead>';
+  html+='<tr><th></th>';
+  monthSeg.forEach((s,i)=>{
+    const span=s.endIdx-s.startIdx+1;
+    html+='<th class="month'+(i===0?' start':'')+'" colspan="'+span+'">'+s.label+'</th>';
+  });
+  html+='</tr><tr><th></th>';
+  for(let i=0;i<days;i++){
+    const d=addDays(min,i);
+    const w=d.getDay();
+    const isMonthStart=monthSeg.some(s=>s.startIdx===i);
+    html+='<th class="'+(w===1?'mon':'')+(isMonthStart?' month-start':'')+'">'+(w===1 ? (d.getMonth()+1)+'/'+d.getDate() : '')+'</th>';
+  }
+  html+='</tr></thead><tbody>';
+
+  let prevGroup=null;
+  items.forEach(it=>{
+    const t=it.t;
+    const grp=t.group||'未分層';
+    if(grp!==prevGroup){
+      html+='<tr class="g-row"><td class="gantt-row-label g-label"><span class="lbl">'+grp+'</span></td>'
+          + '<td class="g-span" colspan="'+days+'"></td></tr>';
+      prevGroup=grp;
+    }
+    let label=t.name;
+    if(t.mode==='rel') label+=' <span class="off">＋'+t.off+'</span>';
+    if(t.due){
+      const e=it.end;
+      label+=' <span class="off">限期 '+(e.getMonth()+1)+'/'+e.getDate()+'</span>';
+    }
+    html+='<tr><td class="gantt-row-label'+(t.status==='tentative'?' tentative':'')+'" title="'+t.name+(t.loc?' ｜ '+t.loc:'')+'"><span class="lbl">'+label+'</span></td>';
+    for(let i=0;i<days;i++){
+      const d=addDays(min,i);
+      const w=d.getDay();
+      const isMonthStart=monthSeg.some(s=>s.startIdx===i);
+      const cls=(w===1?'mon':'')+(w===0||w===6?' weekend':'')+(isMonthStart?' month-start':'');
+      html+='<td class="gantt-cell '+cls+'" data-idx="'+i+'">';
+      const ds=fmt(d);
+      if(it.start && ds===fmt(it.start)){
+        if(t.type==='range'){
+          const span=diffDays(it.end,it.start)+1;
+          html+='<div class="g-bar'+(t.status==='tentative'?' tentative':'')+'" data-span="'+span+'" title="'+t.name+' ｜ '+it.dateStr+' ｜ '+t.loc+' ｜ 依賴：'+(t.depend||'—')+'">';
+          html+='<span class="g-name">'+t.name+(t.status==='tentative'?'（暫定）':'')+'</span></div>';
+        }else{
+          const tent=t.status==='tentative';
+          html+='<div class="g-milestone'+(tent?' tentative':'')+'" title="'+t.name+' ｜ '+it.dateStr+'（'+WEEK[d.getDay()]+'） ｜ '+t.loc+'">';
+          html+='<span class="g-name">'+t.name+'</span></div>';
+        }
+      }
+      if(it.buffer && ds===fmt(it.buffer)){
+        html+='<div class="g-buffer" title="緩衝日：'+fmt(it.buffer)+'"></div>';
+      }
+      if(ds===today){
+        const cellW = measureCellW();
+        html+='<div class="g-today-line" style="left:'+(cellW/2-1)+'px"></div>';
+      }
+      html+='</td>';
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('gantt').innerHTML=html;
+  // 重繪後量測 cell 寬度，設定 bar/buffer 寬度
+  fitGanttBars();
+}
+
+// 量測並設定甘特條寬度，使每天一格隨容器自適應
+function measureCellW(){
+  // 只取單日格（colspan=1）。若誤取到跨欄格，bar 寬度會被放大成整條時間軸。
+  const cells=document.querySelectorAll('#gantt .gantt-cell');
+  for(let i=0;i<cells.length;i++){
+    if(cells[i].colSpan===1) return cells[i].getBoundingClientRect().width;
+  }
+  return 0;
+}
+function fitGanttBars(){
+  const cellW=measureCellW();
+  if(!cellW) return;
+  document.querySelectorAll('#gantt .g-bar').forEach(b=>{
+    const span=+(b.dataset.span||1);
+    const w=span*cellW-2;
+    b.style.width=w+'px';
+    // bar 太窄時不顯示格內名稱（避免從中間被切斷）；完整名稱在左欄與 tooltip
+    const nm=b.querySelector('.g-name');
+    if(nm) nm.style.display = (w<96) ? 'none' : '';
+  });
+  document.querySelectorAll('#gantt .g-buffer').forEach(b=>{
+    b.style.width=cellW+'px';
+  });
+  // 重新置中今日線
+  const todayLine=document.querySelector('#gantt .g-today-line');
+  if(todayLine) todayLine.style.left=(cellW/2-1)+'px';
+}
+
+/* ===== 月曆 ===== */
+function renderCalendars(items, baseStr){
+  const base=toDate(baseStr);
+  // 月份依所有任務的實際日期自動推算（不再寫死）
+  const all=items.map(i=>i.start).concat(items.map(i=>i.end)).filter(Boolean);
+  const lo=new Date(Math.min.apply(null,all)), hi=new Date(Math.max.apply(null,all));
+  const months=[]; let my=lo.getFullYear(), mm=lo.getMonth();
+  const hy=hi.getFullYear(), hm=hi.getMonth();
+  while(my<hy || (my===hy && mm<=hm)){ months.push({y:my,m:mm}); mm++; if(mm>11){mm=0;my++;} }
+  const today=todayStr();
+  const idx={}; items.forEach(i=>{ idx[fmt(i.start)]=idx[fmt(i.start)]||[]; idx[fmt(i.start)].push(i); });
+  // 也記錄範圍內日期
+  const rangeOn={}; items.forEach(i=>{
+    if(i.t.type!=='range') return;
+    for(let d=new Date(i.start); d<=i.end; d=addDays(d,1)){ rangeOn[fmt(d)]=rangeOn[fmt(d)]||[]; rangeOn[fmt(d)].push(i); }
+  });
+  const bufferOn={}; items.forEach(i=>{ if(i.buffer) bufferOn[fmt(i.buffer)]=i; });
+
+  let html='';
+  months.forEach(mb=>{
+    const m=mb.m, year=mb.y;
+    const first=new Date(year,m,1);
+    const total=new Date(year,m+1,0).getDate();
+    const lead=first.getDay();
+    html+='<div class="cal"><h3>'+(m+1)+' 月</h3><table>';
+    html+='<tr>'+['日','一','二','三','四','五','六'].map((w,i)=>'<th class="'+(i===0?'sun':i===6?'sat':'')+'">'+w+'</th>').join('')+'</tr>';
+    const cells=[];
+    for(let i=0;i<lead;i++) cells.push('<td class="out"></td>');
+    for(let day=1; day<=total; day++){
+      const d=new Date(year,m,day);
+      const ds=fmt(d);
+      const w=d.getDay();
+      let cell='<td class="'+(w===0||w===6?'weekend ':'')+(ds===today?'today ':'')+'">';
+      cell+='<span class="daynum">'+day+'</span>';
+      // 事件
+      const startEvents = idx[ds]||[];
+      startEvents.forEach(i=>{
+        const t=i.t;
+        if(t.type==='range'){
+          const onlyDay = diffDays(i.end,i.start)===0;
+          cell+='<div class="ev '+(onlyDay?'ev-range-start ev-range-end':'ev-range-start')+(t.status==='tentative'?' tentative':'')+'">▶ '+t.name+'</div>';
+        }else{
+          cell+='<div class="ev ev-m'+(t.status==='tentative'?' tentative':'')+'" title="'+t.loc+'">'+t.name+(t.status==='tentative'?'（暫定）':'')+'</div>';
+        }
+      });
+      // 範圍中間/結束
+      const inEvents=rangeOn[ds]||[];
+      inEvents.forEach(i=>{
+        if(ds===fmt(i.start)) return; // 已處理開始
+        const isEnd = ds===fmt(i.end);
+        cell+='<div class="ev '+(isEnd?'ev-range-end':'ev-range-in')+'">'+(isEnd?tName(i)+' ◀':'')+'</div>';
+      });
+      if(bufferOn[ds]) cell+='<div class="ev ev-buffer">緩衝日（不排安裝）</div>';
+      cell+='</td>';
+      cells.push(cell);
+    }
+    // 補尾
+    const used=lead+total;
+    const rem=(7-used%7)%7;
+    for(let i=0;i<rem;i++) cells.push('<td class="out"></td>');
+    for(let r=0; r<cells.length; r+=7){
+      html+='<tr>'+cells.slice(r,r+7).join('')+'</tr>';
+    }
+    html+='</table></div>';
+  });
+  document.getElementById('calendars').innerHTML=html;
+
+  function tName(i){ return i.t.name; }
+}
+
+/* ===== 詳情表 ===== */
+function renderDetail(items){
+  let html='<table class="detail"><thead><tr>'+
+    '<th>任務</th><th>日期</th><th>類型</th><th>狀態</th><th>地點</th><th>依賴</th><th>子項目</th><th>備註</th>'+
+    '</tr></thead><tbody>';
+  let prevG=null;
+  items.forEach(i=>{
+    const t=i.t;
+    const grp=t.group||'未分層';
+    if(grp!==prevG){
+      html+='<tr class="d-group"><td colspan="8">'+grp+'</td></tr>';
+      prevG=grp;
+    }
+    const range = t.type==='range' ? '區間（'+diffDays(i.end,i.start)+' 天）' : '里程碑';
+    const badge = t.status==='tentative' ? '<span class="badge-tent">⚠ 暫定</span>' : '<span class="badge-conf">確定</span>';
+    const kids = t.children ? '<ul class="children">'+t.children.map(c=>'<li>'+c+'</li>').join('')+'</ul>' : '—';
+    html+='<tr><td><b>'+t.name+'</b></td><td>'+(i.buffer?i.dateStr+'（緩衝 '+fmt(i.buffer)+'）':i.dateStr)+'</td><td>'+range+'</td><td>'+badge+'</td><td>'+t.loc+'</td><td>'+(t.depend||'—')+'</td><td>'+kids+'</td><td>'+(t.note||'—')+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('detailTable').innerHTML=html;
+}
+
+/* ===== 重繪 ===== */
+function renderAll(){
+  const base=document.getElementById('baseDate').value || '2026-09-29';
+  const items=compute(base);
+  renderGantt(items);
+  renderCalendars(items, base);
+  renderDetail(items);
+  // 等 layout 完成後量 cell 寬度
+  requestAnimationFrame(fitGanttBars);
+}
+
+window.addEventListener('resize', ()=>{ requestAnimationFrame(fitGanttBars); });
+
+document.getElementById('baseDate').addEventListener('change', renderAll);
+document.getElementById('toggleView').addEventListener('click', function(){
+  const c=document.body.classList;
+  if(c.contains('compact')){
+    c.remove('compact');
+    this.textContent='切換：簡潔顯示';
+  }else{
+    c.add('compact');
+    this.textContent='切換：詳細顯示';
+  }
+});
+
+renderAll();
+</script>
+</body>
+</html>
